@@ -43,14 +43,13 @@ Color Scheme<br>
 
 <p>
 
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg"> 
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <image id="tileseti" xlink:href="Phssthpok_64x64.png" x="0" y="0" height="512" width="512" />
     <filter id="colorize">
       <!-- <feOffset in="SourceGraphic" result="fg-solid"/> -->
       <!-- <feFlood flood-color="cyan" result="fg-solid"/> -->
-      <feBlend mode="multiply"  in2="SourceGraphic" result="fg-mult"/>
-      <feComposite in="fg-mult" in2="SourceAlpha" operator="in" result="fg-masked"/>
+      <feComposite operator="in" in="fg-mult" in2="SourceAlpha"  result="fg-masked"/>
+      <feBlend mode="multiply" in="fg-mult" in2="SourceGraphic" result="fg-mult"/>
       <!-- <feMerge>
         <feMergeNode in="fg-masked">
         <feMergeNode in="SourceGraphic">
@@ -58,21 +57,21 @@ Color Scheme<br>
     </filter>
     <filter id="tilesetize" primitiveUnits="objectBoundingBox">
       <!-- <feOffset in="BackgroundImage" result="tileset"/> -->
-      <!-- <feImage xlink:href="#tileseti" x="0" y="0" width="100%" height="100%" result="tileset"/> -->
-      <feImage xlink:href="Phssthpok_64x64.png" x="0" y="0" width="100%" height="100%" result="tileset"/>
-      <feComposite in="SourceGraphic" in2="tileset" operator="in" result="fg-masked"/>
-      <feBlend mode="multiply" in="fg-masked" in2="tileset" result="fg-mult"/>
+      <!-- <feimage xlink:href="#tileseti" x="0" y="0" width="100%" height="100%" result="tileset"/> doesn't find element in firefox -->
+      <!-- <feflood flood-color="currentcolor" result="solid"/> doesn't update in chrome -->
+      <feimage xlink:href="phssthpok_64x64.png" x="0" y="0" width="100%" height="100%" result="tileset"/> <!-- can't update with js -->
+      <!-- <feoffset in="backgroundimage" result="tileset"/> -->
+      <feBlend mode="multiply" in="SourceGraphic" in2="tileset" result="fg-mult"/>
+      <feComposite in="fg-mult" in2="tileset" operator="in" result="fg-masked"/>
       <feMerge>
-        <feMergeNode in="fg-mult"/>
+        <feMergeNode in="fg-masked"/>
       </feMerge>
     </filter>
   </defs>
 
   <g enable-background="new">
-      <rect id="background-fill" x="0" y="0" width="512" height="512" />
+      <!-- <image id="tileseti" xlink:href="Phssthpok_64x64.png" x="0" y="0" height="512" width="512"/> -->
       <rect id="foreground-fill" x="0" y="0" width="512" height="512" filter="url(#tilesetize)"/>
-  </g>
-  <g transform="translate(275,25)">
   </g>
 </svg>
 
@@ -83,12 +82,14 @@ var $ = document.getElementById.bind(document);
 var $$ = document.querySelectorAll.bind(document);
 
 function setBackgroundColor(color) {
-    $("background-fill").setAttribute("fill", color);
+    // $("background-fill").setAttribute("fill", color);
+    $$("svg")[0].style.backgroundColor = color;
     $("canvas").style.backgroundColor = color;
 }
 
 function setForegroundColor(color) {
     $("foreground-fill").setAttribute("fill", color);
+    $$("svg")[0].setAttribute("color", color);
     // use multiply blending to draw the tileset in the foreground color
     // then use destination-atop compositing to mask the colored image to the tileset's alpha channel
     var tileset = $("tileset");
