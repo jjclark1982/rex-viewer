@@ -1,8 +1,21 @@
 var rexFile = null;
-$("tileset").onload = updateDrawnRex;
+var tileWidth = 0;
+var tileHeight = 0;
+var tileset = $("tileset");
+var tilesetC = null;
+tileset.onload = updateDrawnRex;
 
 function updateDrawnRex() {
     if (!rexFile) return;
+
+    tileWidth = tileset.naturalWidth / 16;
+    tileHeight = tileset.naturalHeight / 16;
+    var canvas = document.createElement('canvas');
+    canvas.width = tileset.naturalWidth;
+    canvas.height = tileset.naturalWidth;
+    tilesetC = canvas.getContext('2d');
+    tilesetC.drawImage(tileset, 0, 0);
+
     var div = drawRex(rexFile);
     $('drawn-rex').innerHTML = '';
     $('drawn-rex').appendChild(div);
@@ -47,7 +60,6 @@ handleDroppedFiles($("drop-tileset"), function(file){
         var tileset = $('tileset');
         var dataURL = reader.result;
         tileset.src = dataURL;
-        // setSavedColors();
     };
     reader.readAsDataURL(file);
 });
@@ -56,8 +68,7 @@ handleDroppedFiles($("drop-xp"), function(file){
     $('xp-name').textContent = file.name;
     var reader = new FileReader();
     reader.onload = function(e){
-        var layers = parseXPFile(reader.result);
-        rexFile = layers;
+        rexFile = parseXPFile(reader.result);
         updateDrawnRex();
     };
     reader.readAsBinaryString(file);
@@ -91,7 +102,13 @@ function parseXPFile(xpFile) {
                 var tile = {
                     charCode: dataView.getInt32(offset, true),
                     fgColor: getColor(dataView, offset+4),
-                    bgColor: getColor(dataView, offset+7)
+                    bgColor: getColor(dataView, offset+7),
+                    fgR: dataView.getUint8(offset+4),
+                    fgG: dataView.getUint8(offset+5),
+                    fgB: dataView.getUint8(offset+6),
+                    bgR: dataView.getUint8(offset+7),
+                    bgG: dataView.getUint8(offset+8),
+                    bgB: dataView.getUint8(offset+9),
                 };
                 offset += 10;
                 layer[x].push(tile);
@@ -99,22 +116,17 @@ function parseXPFile(xpFile) {
         }
         layers.push(layer);
     }
-    window.lastRex = layers;
     return layers;
 }
 
 function drawRex(layers) {
-    var tileset = $("tileset");
-    var w = tileset.naturalWidth / 16;
-    var h = tileset.naturalHeight / 16;
-
     var layerWidth = layers[0].length;
     var layerHeight = layers[0][0].length;
 
     var div = document.createElement('div');
     div.style.backgroundColor = 'black';
-    div.style.width = layerWidth * w;
-    div.style.height = layerHeight * h;
+    div.style.width = layerWidth * tileWidth;
+    div.style.height = layerHeight * tileHeight;
 
     for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
@@ -126,10 +138,6 @@ function drawRex(layers) {
 }
 
 function drawLayer(layer) {
-    var tileset = $("tileset");
-    var w = tileset.naturalWidth / 16;
-    var h = tileset.naturalHeight / 16;
-
     var layerWidth = layer.length;
     var layerHeight = layer[0].length;
 
@@ -137,8 +145,8 @@ function drawLayer(layer) {
 
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
-    canvas.width = layerWidth * w;
-    canvas.height = layerHeight * h;
+    canvas.width = layerWidth * tileWidth;
+    canvas.height = layerHeight * tileHeight;
     canvas.style.position = 'absolute';
 
     for (var x = 0; x < layer.length; x++) {
@@ -149,26 +157,39 @@ function drawLayer(layer) {
     return canvas;
 }
 
-function drawTile(ctx, tile, dx, dy) {
+function inter(start, fraction, end) {
+    return (start + fraction*(end-start))|0;
+}
+
+function drawTile(dst, tile, x, y) {
     // if (tile.charCode != 32)
     //     console.log("drawing tile", tile.charCode, "at", dx, ',', dy)
     // magenta background indicates a transparent cell
     if (tile.bgColor == "rgb(255,0,255)") return;
 
-    var sx = tile.charCode % 16;
-    var sy = tile.charCode / 16 | 0;
+    var w = tileWidth;
+    var h = tileHeight;
+    var sx = (tile.charCode % 16) * w;
+    var sy = (tile.charCode / 16 | 0 ) * h;
+    var dx = x * w;
+    var dy = y * h;
 
-    var tileset = $("tileset");
-    var w = tileset.naturalWidth / 16;
-    var h = tileset.naturalHeight / 16;
-
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = tile.bgcolor;
-    ctx.fillRect(dx*w, dy*h, w, h);
-    ctx.drawImage(tileset, sx*w, sy*h, w, h, dx*w, dy*h, w, h);
-
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = tile.fgColor;
-    ctx.fillRect(dx*w, dy*h, w, h);
-    ctx.drawImage(tileset, sx*w, sy*h, w, h, dx*w, dy*h, w, h);
+    var tileData = tilesetC.getImageData(sx, sy, w, h);
+    var data = tileData.data;
+    for (var i = 0; i < data.length; i+=4) {
+        // console.log(data[i], inter(tile.bgR, (data[i]/255), tile.fgR));
+        data[i  ] = inter(tile.bgR, (data[i  ]/255), tile.fgR);
+        data[i+1] = inter(tile.bgG, (data[i+1]/255), tile.fgG);
+        data[i+2] = inter(tile.bgB, (data[i+2]/255), tile.fgB);
+    }
+    dst.putImageData(tileData, dx, dy);
 }
+
+/* load dwarf image on initial page load */
+util.request('art/Dwarf_DragonDePlatino.xp', {
+    onload: function(e) {
+        rexFile = parseXPFile(this.response);
+        updateDrawnRex();
+    }
+})
+.overrideMimeType("text/plain; charset=x-user-defined")
