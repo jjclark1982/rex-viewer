@@ -94,7 +94,7 @@ function parseXPFile(xpFile) {
     return rex;
 }
 
-function drawRex(rex, tileset) {
+function drawRexToDOM(el, rex, tileset) {
     var layers = rex.layers;
     var layerWidth = layers[0].length;
     var layerHeight = layers[0][0].length;
@@ -103,18 +103,30 @@ function drawRex(rex, tileset) {
     div.style.backgroundColor = 'black';
     div.style.width = layerWidth * tileset.width;
     div.style.height = layerHeight * tileset.height;
+    el.appendChild(div);
 
     for (var i = 0; i < layers.length; i++) {
         var layer = layers[i];
-        var canvas = drawLayer(layer, tileset);
+        var canvas = makeLayerCanvas(layer, tileset);
         canvas.style.position = 'absolute';
         div.appendChild(canvas);
+        var ctx = canvas.getContext('2d');
+        drawLayer(ctx, layer, tileset);
     }
-
-    return div;
 }
 
-function drawLayer(layer, tileset) {
+function makeRexCanvas(rex, tileset) {
+    var canvas = makeLayerCanvas(rex.layers[0], tileset);
+    var ctx = canvas.getContext('2d');
+    // TODO: black background
+    for (var i = 0; i < rex.layers.length; i++) {
+        var layer = rex.layers[i];
+        drawLayer(ctx, layer, tileset);
+    }
+    return canvas;
+}
+
+function makeLayerCanvas(layer, tileset) {
     var layerWidth = layer.length;
     var layerHeight = layer[0].length;
 
@@ -123,21 +135,22 @@ function drawLayer(layer, tileset) {
     var width = layerWidth*tileset.width;
     var height = layerHeight*tileset.height;
     var canvas = makeCanvas(width, height);
+    return canvas;
+}
 
-    var ctx = canvas.getContext('2d');
+function drawLayer(ctx, layer, tileset) {
     for (var x = 0; x < layer.length; x++) {
         for (var y = 0; y < layer[x].length; y++) {
             drawTile(ctx, tileset, layer[x][y], x, y);
         }
     }
-    return canvas;
 }
 
 function inter(start, fraction, end) {
     return (start + fraction*(end-start))|0;
 }
 
-function drawTile(dst, tileset, tile, x, y) {
+function drawTile(ctx, tileset, tile, x, y) {
     // if (tile.charCode != 32)
     //     console.error("drawing tile", tile.charCode, "at", dx, ',', dy)
     // magenta background indicates a transparent cell
@@ -158,14 +171,16 @@ function drawTile(dst, tileset, tile, x, y) {
         data[i+1] = inter(tile.bgG, (data[i+1]/255), tile.fgG);
         data[i+2] = inter(tile.bgB, (data[i+2]/255), tile.fgB);
     }
-    dst.putImageData(tileData, dx, dy);
+    ctx.putImageData(tileData, dx, dy);
 }
 
 var rexViewer = {
     makeCanvas: makeCanvas,
     makeTileset: makeTileset,
     parseXPFile: parseXPFile,
-    drawRex: drawRex,
+    drawRexToDOM: drawRexToDOM,
+    makeRexCanvas: makeRexCanvas,
+    makeLayerCanvas: makeLayerCanvas,
     drawLayer: drawLayer,
     drawTile: drawTile
 };

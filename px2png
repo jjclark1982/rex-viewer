@@ -15,9 +15,9 @@ xpFilename = process.argv[3]
 xpData = fs.readFileSync(xpFilename)
 rex = rexViewer.parseXPFile(xpData)
 
-layerCanvas = rexViewer.drawLayer(rex.layers[0], tileset)
+rexCanvas = rexViewer.makeRexCanvas(rex, tileset)
 
-output = layerCanvas.pngStream()
+output = rexCanvas.pngStream()
 output.pipe(process.stdout)
 
 output.on('end', ->

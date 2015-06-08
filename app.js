@@ -22,9 +22,9 @@ function updateDrawnRex() {
 
     $('xp-dims').textContent = '('+rex.layers[0].length+'x'+rex.layers[0][0].length+')';
 
-    var div = rexViewer.drawRex(rex, tileset);
-    $('drawn-rex').innerHTML = '';
-    $('drawn-rex').appendChild(div);
+    var el = $('drawn-rex');
+    el.innerHTML = '';
+    var div = rexViewer.drawRexToDOM(el, rex, tileset);
 }
 
 function handleDroppedFiles(dropTarget, callback) {
