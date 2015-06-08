@@ -86,16 +86,17 @@ function parseXPFile(xpFile) {
     var dataView = new DataView(data.buffer);
     var offset = 0;
     var version = dataView.getInt32(0, true);
-    var layerCount = dataView.getInt32(4, true) % 10000;
+    var layerCount = dataView.getUint32(4, true) % 10000;
     offset += 8;
     console.log("version:", version, "layers:", layerCount);
     var layers = [];
     while (offset < data.byteLength) {
-        var layer = [];
-        var width = dataView.getInt32(offset, true);
-        var height = dataView.getInt32(offset+4, true);
+        var width = dataView.getUint32(offset, true);
+        var height = dataView.getUint32(offset+4, true);
         offset += 8;
+        if (width == 0 || height == 0) break; // avoid looping forever
         // console.log("processing layer", layers.length + ":", width, "x", height);
+        var layer = [];
         for (var x = 0; x < width; x++) {
             layer[x] = [];
             for (var y = 0; y < height; y++) {
