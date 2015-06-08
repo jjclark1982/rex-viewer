@@ -9,33 +9,8 @@ $("tileset").onload = function() {
 function updateTileset() {
     var tilesetImg = $('tileset');
     var tilesetName = $('tileset-name').textContent;
-    var tileWidth, tileHight;
-    var match = tilesetName.match(/(\d+)x(\d+)/);
-    if (match) {
-        tileWidth = match[1]
-        tileHeight = match[2]        
-    }
-    else {
-        // assume 16x16 layout
-        tileWidth = tilesetImg.naturalWidth / 16;
-        tileHeight = tilesetImg.naturalHeight / 16;        
-    }
-    $('tileset-dims').textContent = '('+tileWidth+'x'+tileHeight+')';
-    var rowLength = tilesetImg.naturalWidth / tileWidth;
-
-    var canvas = document.createElement('canvas');
-    canvas.width = tilesetImg.naturalWidth;
-    canvas.height = tilesetImg.naturalWidth;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(tilesetImg, 0, 0);
-
-    var tileset = {
-        width: tileWidth,
-        height: tileHeight,
-        rowLength: rowLength,
-        canvas: canvas,
-        context: ctx
-    }
+    var tileset = rexViewer.makeTileset(tilesetImg, tilesetName);
+    $('tileset-dims').textContent = '('+tileset.width+'x'+tileset.height+')';
     return tileset;
 }
 

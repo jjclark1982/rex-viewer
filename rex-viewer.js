@@ -1,17 +1,46 @@
+var makeCanvas;
 if (typeof document === 'undefined') {
     var Canvas = require('canvas');
-    function makeCanvas(width, height) {
+    makeCanvas = function (width, height) {
         var canvas = new Canvas(width, height);
         return canvas;
     }
 }
 else {
-    function makeCanvas(width, height) {
+    makeCanvas = function (width, height) {
         var canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         return canvas;
     }
+}
+
+function makeTileset(img, name) {
+    var tileWidth, tileHight;
+    var match = name.match(/(\d+)x(\d+)/);
+    if (match) {
+        tileWidth = match[1]
+        tileHeight = match[2]        
+    }
+    else {
+        // assume 16x16 layout
+        tileWidth = img.width / 16;
+        tileHeight = img.height / 16;        
+    }
+    var rowLength = img.width / tileWidth;
+
+    var canvas = makeCanvas(img.width, img.width);
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    var tileset = {
+        width: tileWidth,
+        height: tileHeight,
+        rowLength: rowLength,
+        canvas: canvas,
+        context: ctx
+    }
+    return tileset;
 }
 
 function getColor(dataView, offset) {
@@ -132,6 +161,8 @@ function drawTile(dst, tileset, tile, x, y) {
 }
 
 var rexViewer = {
+    makeCanvas: makeCanvas,
+    makeTileset: makeTileset,
     parseXPFile: parseXPFile,
     drawRex: drawRex,
     drawLayer: drawLayer,
