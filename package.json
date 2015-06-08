@@ -1,0 +1,28 @@
+{
+  "name": "rex-viewer",
+  "version": "1.0.0",
+  "description": "REXPaint utilities",
+  "main": "index.js",
+  "dependencies": {
+    "pako": "^0.2.6",
+    "coffee-script": "^1.9.3",
+    "canvas": "*"
+  },
+  "devDependencies": {
+    "express": "^4.12.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jjclark1982/rex-viewer.git"
+  },
+  "author": "Jesse Clark <jjclark1982@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jjclark1982/rex-viewer/issues"
+  },
+  "homepage": "https://github.com/jjclark1982/rex-viewer"
+}
