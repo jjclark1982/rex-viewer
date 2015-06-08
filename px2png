@@ -1,0 +1,25 @@
+#!/usr/bin/env coffee
+
+fs = require('fs')
+Canvas = require('canvas')
+Image = Canvas.Image
+rexViewer = require('./rex-viewer')
+
+tilesetName = process.argv[2]
+tilesetPng = fs.readFileSync(tilesetName)
+tilesetImg = new Image()
+tilesetImg.src = tilesetPng
+tileset = rexViewer.makeTileset(tilesetImg, tilesetName)
+
+xpFilename = process.argv[3]
+xpData = fs.readFileSync(xpFilename)
+rex = rexViewer.parseXPFile(xpData)
+
+rexCanvas = rexViewer.makeRexCanvas(rex, tileset)
+
+output = rexCanvas.pngStream()
+output.pipe(process.stdout)
+
+output.on('end', ->
+    console.error('wrote png')
+)
