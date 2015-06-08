@@ -1,14 +1,15 @@
 var rexFile = null;
-var tileWidth = 0;
-var tileHeight = 0;
-var tileset = $("tileset");
-var tilesetC = null;
-tileset.onload = updateDrawnRex;
+var tileset = null;
 
-function updateDrawnRex() {
-    if (!rexFile) return;
+$("tileset").onload = function() {
+    tileset = updateTileset();
+    updateDrawnRex();
+}
 
+function updateTileset() {
+    var tilesetImg = $('tileset');
     var tilesetName = $('tileset-name').textContent;
+    var tileWidth, tileHight;
     var match = tilesetName.match(/(\d+)x(\d+)/);
     if (match) {
         tileWidth = match[1]
@@ -16,20 +17,37 @@ function updateDrawnRex() {
     }
     else {
         // assume 16x16 layout
-        tileWidth = tileset.naturalWidth / 16;
-        tileHeight = tileset.naturalHeight / 16;        
+        tileWidth = tilesetImg.naturalWidth / 16;
+        tileHeight = tilesetImg.naturalHeight / 16;        
     }
     $('tileset-dims').textContent = '('+tileWidth+'x'+tileHeight+')';
+    var rowLength = tilesetImg.naturalWidth / tileWidth;
 
     var canvas = document.createElement('canvas');
-    canvas.width = tileset.naturalWidth;
-    canvas.height = tileset.naturalWidth;
-    tilesetC = canvas.getContext('2d');
-    tilesetC.drawImage(tileset, 0, 0);
+    canvas.width = tilesetImg.naturalWidth;
+    canvas.height = tilesetImg.naturalWidth;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(tilesetImg, 0, 0);
+
+    var tileset = {
+        width: tileWidth,
+        height: tileHeight,
+        rowLength: rowLength,
+        canvas: canvas,
+        context: ctx
+    }
+    return tileset;
+}
+
+function updateDrawnRex() {
+    if (!rexFile) return;
+    if (!tileset) {
+        tileset = updateTileset();
+    }
 
     $('xp-dims').textContent = '('+rexFile.layers[0].length+'x'+rexFile.layers[0][0].length+')';
 
-    var div = rexViewer.drawRex(rexFile);
+    var div = rexViewer.drawRex(rexFile, tileset);
     $('drawn-rex').innerHTML = '';
     $('drawn-rex').appendChild(div);
 }
@@ -70,9 +88,8 @@ handleDroppedFiles($("drop-tileset"), function(file){
     var reader = new FileReader();
     reader.onload = function(e){
         $('tileset-name').textContent = file.name;
-        var tileset = $('tileset');
         var dataURL = reader.result;
-        tileset.src = dataURL;
+        $('tileset').src = dataURL;
     };
     reader.readAsDataURL(file);
 });
