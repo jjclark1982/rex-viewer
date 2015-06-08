@@ -5,6 +5,7 @@ if (typeof document === 'undefined') {
         var canvas = new Canvas(width, height);
         return canvas;
     }
+    var pako = require('pako');
 }
 else {
     makeCanvas = function (width, height) {
@@ -86,15 +87,15 @@ function parseXPFile(xpFile) {
         }
         layers.push(layer);
     }
-    var rexFile = {
+    var rex = {
         version: version,
         layers: layers
     }
-    return rexFile;
+    return rex;
 }
 
-function drawRex(rexFile, tileset) {
-    var layers = rexFile.layers;
+function drawRex(rex, tileset) {
+    var layers = rex.layers;
     var layerWidth = layers[0].length;
     var layerHeight = layers[0][0].length;
 

@@ -1,4 +1,4 @@
-var rexFile = null;
+var rex = null;
 var tileset = null;
 
 $("tileset").onload = function() {
@@ -15,14 +15,14 @@ function updateTileset() {
 }
 
 function updateDrawnRex() {
-    if (!rexFile) return;
+    if (!rex) return;
     if (!tileset) {
         tileset = updateTileset();
     }
 
-    $('xp-dims').textContent = '('+rexFile.layers[0].length+'x'+rexFile.layers[0][0].length+')';
+    $('xp-dims').textContent = '('+rex.layers[0].length+'x'+rex.layers[0][0].length+')';
 
-    var div = rexViewer.drawRex(rexFile, tileset);
+    var div = rexViewer.drawRex(rex, tileset);
     $('drawn-rex').innerHTML = '';
     $('drawn-rex').appendChild(div);
 }
@@ -73,7 +73,7 @@ handleDroppedFiles($("drop-xp"), function(file){
     var reader = new FileReader();
     reader.onload = function(e){
         $('xp-name').textContent = file.name;
-        rexFile = rexViewer.parseXPFile(reader.result);
+        rex = rexViewer.parseXPFile(reader.result);
         updateDrawnRex();
     };
     reader.readAsBinaryString(file);
@@ -82,7 +82,7 @@ handleDroppedFiles($("drop-xp"), function(file){
 /* load dwarf image on initial page load */
 util.request('art/Dwarf_DragonDePlatino.xp', {
     onload: function(e) {
-        rexFile = parseXPFile(this.response);
+        rex = parseXPFile(this.response);
         updateDrawnRex();
     }
 })
