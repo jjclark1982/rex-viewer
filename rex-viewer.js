@@ -6,6 +6,7 @@ if (typeof document === 'undefined') {
         return canvas;
     }
     var pako = require('pako');
+    var cogmindCodePoints = require('./cogmind-code-points');
 }
 else {
     makeCanvas = function (width, height) {
@@ -32,11 +33,18 @@ function makeTileset(img, name) {
     }
     t.rowLength = img.width / t.width;
 
+    if (name.match(/cogmind/i)) {
+        t.cogmind = true;
+    }
+
     t.canvas = makeCanvas(img.width, img.width);
     t.context = t.canvas.getContext('2d');
     t.context.drawImage(img, 0, 0);
 
     t.getTileData = function(charCode) {
+        if (t.cogmind) {
+            charCode = cogmindCodePoints[charCode] || charCode;
+        }
         var sx = (charCode % t.rowLength     ) * t.width;
         var sy = (charCode / t.rowLength | 0 ) * t.height;
         var tileData = t.context.getImageData(sx, sy, t.width, t.height);
