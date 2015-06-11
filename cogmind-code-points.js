@@ -21,8 +21,8 @@ var cogmindCodePoints = {
     // 0x12:    x, // dc2
     // 0x13:    x, // dc3
     // 0x14:    x, // dc4
-    // 0x15:    x, // nak
-    // 0x16:    x, // syn
+    0x15:    0x16f, // nak, section
+    0x16:    0x8b, // syn, low block
     // 0x17:    x, // etb
     // 0x18:    x, // can
     // 0x19:    x, // em
@@ -181,13 +181,15 @@ var cogmindCodePoints = {
     0xd6: 0xad, // line
     0xd7: 0xa4, // line 2 v 1 h
     0xd8: 0xa5, // line
-    0xd9: 0x82, // line
-    0xda: 0x8a, // line
+    0xd9: 0x8a, // line
+    0xda: 0x88, // line
     0xdb: 0xb2, // block
     0xdc: 0xb3, // block
     0xdd: 0xb4, // block
     0xde: 0xb5, // block
     0xdf: 0xb6, // block
+
+    0xf9: 0x8b, // center dot
 
     0xfe: 0x5e, // empty checkbox
     0xff: 0x5f  // full checkbox
@@ -196,3 +198,5 @@ var cogmindCodePoints = {
 if (typeof module !== 'undefined') {
     module.exports = cogmindCodePoints;
 }
+
+// seeing a lot of suprious @ and 6
