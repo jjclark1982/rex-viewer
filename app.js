@@ -23,8 +23,15 @@ function updateDrawnRex() {
     $('xp-dims').textContent = '('+rex.layers[0].length+'x'+rex.layers[0][0].length+')';
 
     var el = $('drawn-rex');
+    // el.innerHTML = '';
+    // rexViewer.drawRexToDOM(el, rex, tileset);
+    // var resultCanvas = el.querySelector('canvas');
+
+    var resultCanvas = rexViewer.makeRexCanvas(rex, tileset);
+    var resultImg = document.createElement('img');
+    resultImg.src = resultCanvas.toDataURL();
     el.innerHTML = '';
-    var div = rexViewer.drawRexToDOM(el, rex, tileset);
+    el.appendChild(resultImg);
 }
 
 function handleDroppedFiles(dropTarget, callback) {
@@ -64,7 +71,7 @@ handleDroppedFiles($("drop-tileset"), function(file){
     reader.onload = function(e){
         $('tileset-name').textContent = file.name;
         var dataURL = reader.result;
-        $('tileset').src = dataURL;
+        $('tileset').src = dataURL; // will trigger onload handler
     };
     reader.readAsDataURL(file);
 });

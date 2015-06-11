@@ -6,6 +6,7 @@ if (typeof document === 'undefined') {
         return canvas;
     }
     var pako = require('pako');
+    var cogmindCodePoints = require('./cogmind-code-points');
 }
 else {
     makeCanvas = function (width, height) {
@@ -17,31 +18,40 @@ else {
 }
 
 function makeTileset(img, name) {
+    var t = {};
+
     var tileWidth, tileHight;
     var match = name.match(/(\d+)x(\d+)/);
     if (match) {
-        tileWidth = match[1]
-        tileHeight = match[2]        
+        t.width = match[1]
+        t.height = match[2]        
     }
     else {
         // assume 16x16 layout
-        tileWidth = img.width / 16;
-        tileHeight = img.height / 16;        
+        t.width = img.width / 16;
+        t.height = img.height / 16;        
     }
-    var rowLength = img.width / tileWidth;
+    t.rowLength = img.width / t.width;
 
-    var canvas = makeCanvas(img.width, img.width);
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    var tileset = {
-        width: tileWidth,
-        height: tileHeight,
-        rowLength: rowLength,
-        canvas: canvas,
-        context: ctx
+    if (name.match(/cogmind/i)) {
+        t.cogmind = true;
     }
-    return tileset;
+
+    t.canvas = makeCanvas(img.width, img.width);
+    t.context = t.canvas.getContext('2d');
+    t.context.drawImage(img, 0, 0);
+
+    t.getTileData = function(charCode) {
+        if (t.cogmind) {
+            charCode = cogmindCodePoints[charCode] || charCode;
+        }
+        var sx = (charCode % t.rowLength     ) * t.width;
+        var sy = (charCode / t.rowLength | 0 ) * t.height;
+        var tileData = t.context.getImageData(sx, sy, t.width, t.height);
+        return tileData;
+    }
+
+    return t;
 }
 
 function getColor(dataView, offset) {
@@ -79,7 +89,7 @@ function parseXPFile(xpFile) {
                     fgB: dataView.getUint8(offset+6),
                     bgR: dataView.getUint8(offset+7),
                     bgG: dataView.getUint8(offset+8),
-                    bgB: dataView.getUint8(offset+9),
+                    bgB: dataView.getUint8(offset+9)
                 };
                 offset += 10;
                 layer[x].push(tile);
@@ -156,14 +166,7 @@ function drawTile(ctx, tileset, tile, x, y) {
     // magenta background indicates a transparent cell
     if (tile.bgColor == "rgb(255,0,255)") return;
 
-    var w = tileset.width;
-    var h = tileset.height;
-    var sx = (tile.charCode % tileset.rowLength     ) * w;
-    var sy = (tile.charCode / tileset.rowLength | 0 ) * h;
-    var dx = x * w;
-    var dy = y * h;
-
-    var tileData = tileset.context.getImageData(sx, sy, w, h);
+    var tileData = tileset.getTileData(tile.charCode);
     var data = tileData.data;
     for (var i = 0; i < data.length; i+=4) {
         // console.error(data[i], inter(tile.bgR, (data[i]/255), tile.fgR));
@@ -171,6 +174,9 @@ function drawTile(ctx, tileset, tile, x, y) {
         data[i+1] = inter(tile.bgG, (data[i+1]/255), tile.fgG);
         data[i+2] = inter(tile.bgB, (data[i+2]/255), tile.fgB);
     }
+
+    var dx = x * tileset.width;
+    var dy = y * tileset.height;
     ctx.putImageData(tileData, dx, dy);
 }
 
