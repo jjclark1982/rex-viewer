@@ -1,6 +1,6 @@
 # REX-Viewer
 
-Web-based viewer for [RexPaint](rexpaint.blogspot.com) files.
+Web-based viewer for [RexPaint](http://rexpaint.blogspot.com) files.
 
 ## Usage
 
